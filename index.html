@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>An Experience</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@200;300;400&display=swap');
+
+        body, html { 
+            margin: 0; padding: 0; 
+            background-color: #030102; 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 50; opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        #start-btn {
+            width: 130px; height: 130px;
+            border-radius: 50%;
+            border: 1px solid #ffb3c6;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(255, 179, 198, 0.4), inset 0 0 20px rgba(255, 179, 198, 0.3);
+            animation: pulseOrb 2.5s infinite alternate ease-in-out;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+            background: rgba(255, 179, 198, 0.05);
+        }
+        
+        #start-btn:active {
+            transform: scale(0.9) !important;
+            box-shadow: 0 0 60px rgba(255, 179, 198, 0.8), inset 0 0 40px rgba(255, 179, 198, 0.6);
+        }
+
+        @keyframes pulseOrb {
+            0% { transform: scale(0.98); box-shadow: 0 0 25px rgba(255, 179, 198, 0.3), inset 0 0 15px rgba(255, 179, 198, 0.2); }
+            100% { transform: scale(1.02); box-shadow: 0 0 55px rgba(255, 179, 198, 0.7), inset 0 0 30px rgba(255, 179, 198, 0.5); }
+        }
+
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+
+        .content { position: relative; z-index: 10; pointer-events: none; }
+        
+        .section { 
+            height: 100vh; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; 
+            text-align: center; padding: 0 5%;
+        }
+
+        h1 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 3.5rem; font-weight: 400; 
+            color: #fce8eb; 
+            margin-bottom: 25px; line-height: 1.2; 
+            letter-spacing: -1px;
+            text-shadow: 0px 10px 30px rgba(0, 0, 0, 0.95), 0px 2px 10px rgba(0, 0, 0, 0.9);
+        }
+        
+        p { 
+            font-size: 1.15rem; font-weight: 300; 
+            color: #e0dcdc; max-width: 500px; line-height: 1.7; 
+            letter-spacing: 0.2px;
+            text-shadow: 0px 4px 15px rgba(0, 0, 0, 0.95), 0px 1px 5px rgba(0, 0, 0, 0.9);
+        }
+        
+        .scroll-hint { 
+            margin-top: 80vh; font-size: 0.75rem; font-weight: 400;
+            letter-spacing: 6px; text-transform: uppercase;
+            color: #fce8eb; opacity: 0.7; animation: pulse 3s infinite ease-in-out;
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.9);
+        }
+
+        .fade-text {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-text.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; margin-bottom: 15px; }
+            p { font-size: 1rem; line-height: 1.6; }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.1; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0.1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <div id="start-btn">
+            <span style="color:#ffb3c6; font-family:'Playfair Display', serif; font-size:18px; font-weight:700; letter-spacing:4px; margin-left:4px;">BEGIN</span>
+        </div>
+        <p style="margin-top: 35px; font-size: 1rem; color: #ffb3c6; opacity: 0.8; font-family:'Playfair Display', serif; font-style: italic;">Tap to start</p>
+    </div>
+
+    <div class="noise"></div>
+    <div id="canvas-container"></div>
+
+    <div class="content">
+        <div class="section"><div class="scroll-hint">SCROLL TO EXPERIENCE</div></div>
+        
+        <div class="section">
+            <h1 class="fade-text">There's beauty in the chaos.</h1>
+            <p class="fade-text">I've been playing with code and mathematics, trying to create something that feels alive—something with a heartbeat.</p>
+        </div>
+
+        <div class="section">
+            <h1 class="fade-text">A matter of perspective.</h1>
+            <p class="fade-text">Thousands of wandering particles, drifting through empty space, until they finally find exactly where they belong.</p>
+        </div>
+
+        <div class="section">
+            <h1 class="fade-text">It made me think of you.</h1>
+            <p class="fade-text">You have this undeniable magnetism. An effortless grace that quietly captivates everyone around you.</p>
+        </div>
+
+        <div class="section">
+            <h1 class="fade-text">I wondered who to show this to...</h1>
+            <p class="fade-text">But truthfully, you were the only person who came to mind.</p>
+        </div>
+
+        <div class="section">
+            <h1 class="fade-text"><i>Maybe</i> I'm just captivated by you.</h1>
+            <p class="fade-text">Or maybe I just really wanted the perfect excuse to finally talk to you.</p>
+        </div>
+
+        <div class="section">
+            <h1 class="fade-text">Whatever the reason.</h1>
+            <p class="fade-text">I hope this brought a genuine smile to your face today.</p>
+            <p class="fade-text" style="font-size: 1rem; margin-top: 40px; color: #fce8eb; font-family: 'Playfair Display', serif; font-style: italic;">
+                (If it did, you know exactly where to find me. ✨)
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        let isMobile = window.innerWidth < 768;
+        let camBaseZ = isMobile ? 65 : 45; 
+        let camEndZ = isMobile ? 35 : 20;  
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+        const particleTexture = new THREE.CanvasTexture(canvas);
+
+        const particleCount = 5000;
+        
+        const posGalaxy = new Float32Array(particleCount * 3);
+        const posHelix = new Float32Array(particleCount * 3);
+        const posWormhole = new Float32Array(particleCount * 3);
+        const posTorus = new Float32Array(particleCount * 3);
+        const posStar = new Float32Array(particleCount * 3);
+        const posDiamond = new Float32Array(particleCount * 3);
+        const posHeart = new Float32Array(particleCount * 3);
+        const posCurrent = new Float32Array(particleCount * 3);
+
+        let rGalaxy, theta, phi;
+        let tHelix, strand;
+        let vWorm, uWorm, rWorm;
+        let u, v, R = 15, r2 = 5;
+        let isFront, ptIdx, a_out, a_in1, a_in2, leftHalf, a_in;
+        let v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z;
+        let r1, r2_star, r3;
+        let pd, td, layer, dx, dy, dz, rd;
+        let t, d, hx, hy, hz;
+
+        for (let i = 0; i < particleCount; i++) {
+            // STATE 1: GALAXY
+            rGalaxy = 30 * Math.cbrt(Math.random());
+            theta = Math.random() * 2 * Math.PI;
+            phi = Math.acos(2 * Math.random() - 1);
+            posGalaxy[i*3] = rGalaxy * Math.sin(phi) * Math.cos(theta);
+            posGalaxy[i*3+1] = rGalaxy * Math.sin(phi) * Math.sin(theta);
+            posGalaxy[i*3+2] = rGalaxy * Math.cos(phi);
+
+            // STATE 2: ELECTRIC HELIX
+            tHelix = (i / particleCount) * Math.PI * 16; 
+            strand = (i % 2 === 0) ? 0 : Math.PI;
+            posHelix[i*3] = Math.cos(tHelix + strand) * 10 + (Math.random() - 0.5) * 2;
+            posHelix[i*3+1] = ((i / particleCount) - 0.5) * 50; 
+            posHelix[i*3+2] = Math.sin(tHelix + strand) * 10 + (Math.random() - 0.5) * 2;
+
+            // STATE 3: QUANTUM WORMHOLE
+            vWorm = (Math.random() - 0.5) * 40; 
+            uWorm = Math.random() * Math.PI * 2; 
+            rWorm = Math.sqrt(vWorm * vWorm * 0.15 + 20); 
+            posWormhole[i*3] = rWorm * Math.cos(uWorm);
+            posWormhole[i*3+1] = vWorm;
+            posWormhole[i*3+2] = rWorm * Math.sin(uWorm);
+
+            // STATE 4: GOLDEN TORUS
+            u = Math.random() * Math.PI * 2;
+            v = Math.random() * Math.PI * 2;
+            posTorus[i*3] = (R + r2 * Math.cos(v)) * Math.cos(u);
+            posTorus[i*3+1] = (R + r2 * Math.cos(v)) * Math.sin(u);
+            posTorus[i*3+2] = r2 * Math.sin(v);
+
+            // STATE 5: SOLID 3D 5-POINTED STAR
+            isFront = Math.random() > 0.5;
+            ptIdx = Math.floor(Math.random() * 5);
+            a_out = (ptIdx / 5) * Math.PI * 2 - Math.PI/2;
+            a_in1 = a_out - (Math.PI / 5);
+            a_in2 = a_out + (Math.PI / 5);
+            leftHalf = Math.random() > 0.5;
+            a_in = leftHalf ? a_in1 : a_in2;
+            
+            // INCREASED STAR SIZE
+            v0x = 0; v0y = 0; v0z = isFront ? 3.0 : -3.0;
+            v1x = 13.0 * Math.cos(a_out); v1y = 13.0 * Math.sin(a_out); v1z = 0;
+            v2x = 5.0 * Math.cos(a_in);  v2y = 5.0 * Math.sin(a_in);  v2z = 0;
+            
+            r1 = Math.random();
+            r2_star = Math.random();
+            if (r1 + r2_star > 1) { r1 = 1 - r1; r2_star = 1 - r2_star; }
+            r3 = 1 - r1 - r2_star;
+            
+            posStar[i*3] = r1 * v0x + r2_star * v1x + r3 * v2x;
+            posStar[i*3+1] = (r1 * v0y + r2_star * v1y + r3 * v2y) + 1;
+            posStar[i*3+2] = r1 * v0z + r2_star * v1z + r3 * v2z;
+
+            // STATE 6: BRILLIANT DIAMOND
+            pd = Math.random();
+            td = Math.random() * Math.PI * 2;
+            layer = Math.random();
+            if (layer < 0.3) {
+                rd = 5 * Math.sqrt(pd);
+                dx = rd * Math.cos(td);
+                dz = rd * Math.sin(td);
+                dy = 5;
+            } else if (layer < 0.6) {
+                rd = 5 + 3 * pd; 
+                dx = rd * Math.cos(td);
+                dz = rd * Math.sin(td);
+                dy = 5 - pd * 3; 
+            } else {
+                rd = 8 * (1 - pd); 
+                dx = rd * Math.cos(td);
+                dz = rd * Math.sin(td);
+                dy = 2 - pd * 10; 
+            }
+            
+            // Tilt the diamond forward on the X-axis so its beautiful side/top profile is visible
+            let tilt = 0.4; // about 23 degrees
+            let tilted_dy = dy * Math.cos(tilt) - dz * Math.sin(tilt);
+            let tilted_dz = dy * Math.sin(tilt) + dz * Math.cos(tilt);
+
+            posDiamond[i*3] = dx;
+            posDiamond[i*3+1] = tilted_dy + 1; 
+            posDiamond[i*3+2] = tilted_dz;
+
+            // STATE 7: PERFECT FILLED SILHOUETTE HEART
+            t = Math.random() * Math.PI * 2; 
+            d = Math.sqrt(Math.random()); 
+            hx = 16 * Math.pow(Math.sin(t), 3) * d * 0.6;
+            hy = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * d * 0.6;
+            hz = (Math.random() - 0.5) * 4.0 * (1 - d);
+            hy += 2; 
+
+            posHeart[i*3] = hx;
+            posHeart[i*3+1] = hy;
+            posHeart[i*3+2] = hz;
+
+            // Initialize to Galaxy
+            posCurrent[i*3] = posGalaxy[i*3];
+            posCurrent[i*3+1] = posGalaxy[i*3+1];
+            posCurrent[i*3+2] = posGalaxy[i*3+2];
+        }
+
+        const colors = new Float32Array(particleCount * 3);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(posCurrent, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.45, map: particleTexture, transparent: true, opacity: 0.9,
+            blending: THREE.AdditiveBlending, depthWrite: false, vertexColors: true
+        });
+
+        const particleSystem = new THREE.Points(geometry, material);
+        scene.add(particleSystem);
+
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+        let currentScroll = 0, targetScroll = 0;
+
+        // Audio Setup: Playing the downloaded local file
+        const bgMusic = new Audio('Perfect by Ed Sheeran.mpeg');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.6;
+        let musicStarted = false;
+
+        let isWarping = false;
+        let warpProgress = 0;
+        let warpZOffset = 0;
+
+        const startOverlay = document.getElementById('start-overlay');
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (!musicStarted) {
+                bgMusic.play().catch(err => console.log("Audio play failed:", err));
+                musicStarted = true;
+            }
+            startOverlay.style.opacity = '0';
+            setTimeout(() => startOverlay.style.display = 'none', 1500);
+            
+            // Trigger the hyperspace warp effect!
+            isWarping = true;
+            warpProgress = 0;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.002;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.002;
+        });
+        document.addEventListener('touchmove', (e) => {
+            mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.003;
+            mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.003;
+        });
+
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            targetScroll = scrollTop / scrollHeight;
+        });
+
+        const textElements = document.querySelectorAll('.fade-text');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.4 });
+        textElements.forEach(el => observer.observe(el));
+
+        const colGalaxy = new THREE.Color(0xf7d2d9); // Champagne
+        const colHelix = new THREE.Color(0x8a2be2);  // Electric Violet
+        const colWormhole = new THREE.Color(0x00f3ff); // Quantum Cyan
+        const colTorus = new THREE.Color(0xd4af37);  // Golden
+        const colRoseBot = new THREE.Color(0x00ffff); // Neon Cyan (base)
+        const colRoseTop = new THREE.Color(0xff00ff); // Magical Purple (tips)
+        const colHeart = new THREE.Color(0xff003c);  // Perfect Ruby Red
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            currentScroll += (targetScroll - currentScroll) * 0.05;
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            let p1 = Math.max(0, Math.min(1, currentScroll / 0.15)); 
+            let p2 = Math.max(0, Math.min(1, (currentScroll - 0.15) / 0.15)); 
+            let p3 = Math.max(0, Math.min(1, (currentScroll - 0.30) / 0.15)); 
+            
+            // Torus holds from 0.45 to 0.55
+            let p4 = Math.max(0, Math.min(1, (currentScroll - 0.55) / 0.10)); 
+            
+            // Butterfly holds from 0.65 to 0.70
+            let p5 = Math.max(0, Math.min(1, (currentScroll - 0.70) / 0.10)); 
+            
+            // Diamond holds from 0.80 to 0.85
+            let p6 = Math.max(0, Math.min(1, (currentScroll - 0.85) / 0.15)); 
+
+            const ease1 = p1 < 0.5 ? 4 * p1 * p1 * p1 : 1 - Math.pow(-2 * p1 + 2, 3) / 2;
+            const ease2 = p2 < 0.5 ? 4 * p2 * p2 * p2 : 1 - Math.pow(-2 * p2 + 2, 3) / 2;
+            const ease3 = p3 < 0.5 ? 4 * p3 * p3 * p3 : 1 - Math.pow(-2 * p3 + 2, 3) / 2;
+            const ease4 = p4 < 0.5 ? 4 * p4 * p4 * p4 : 1 - Math.pow(-2 * p4 + 2, 3) / 2;
+            const ease5 = p5 < 0.5 ? 4 * p5 * p5 * p5 : 1 - Math.pow(-2 * p5 + 2, 3) / 2;
+            const ease6 = p6 < 0.5 ? 4 * p6 * p6 * p6 : 1 - Math.pow(-2 * p6 + 2, 3) / 2;
+
+            let baseColor = new THREE.Color();
+            if (p1 < 1) baseColor.lerpColors(colGalaxy, colHelix, ease1);
+            else if (p2 < 1) baseColor.lerpColors(colHelix, colWormhole, ease2);
+            else if (p3 < 1) baseColor.lerpColors(colWormhole, colTorus, ease3);
+            else baseColor.copy(colTorus);
+
+            // Heartbeat Pulse
+            let beatScale = 1;
+            if (p6 > 0.9) {
+                const beat = Math.abs(Math.sin(elapsedTime * 3)) * Math.abs(Math.sin(elapsedTime * 3 - 0.2));
+                beatScale = 1 + (beat * 0.12); 
+            }
+
+            // Smoothly brake the automatic spin so the heart locks forward completely
+            const lockFactor = 1 - p6; 
+            const autoSpin = elapsedTime * 0.25 * lockFactor;
+            particleSystem.rotation.y = autoSpin + (targetX * 0.8 * lockFactor);
+            particleSystem.rotation.x = (targetY * 0.8 * lockFactor);
+
+            const positions = geometry.attributes.position.array;
+            const colAttr = geometry.attributes.color.array;
+
+            for (let i = 0; i < particleCount * 3; i+=3) {
+                let x = posGalaxy[i], y = posGalaxy[i+1], z = posGalaxy[i+2];
+
+                x += (posHelix[i] - x) * ease1;
+                y += (posHelix[i+1] - y) * ease1;
+                z += (posHelix[i+2] - z) * ease1;
+
+                x += (posWormhole[i] - x) * ease2;
+                y += (posWormhole[i+1] - y) * ease2;
+                z += (posWormhole[i+2] - z) * ease2;
+
+                x += (posTorus[i] - x) * ease3;
+                y += (posTorus[i+1] - y) * ease3;
+                z += (posTorus[i+2] - z) * ease3;
+
+                // STAR (Merkabah)
+                let sx = posStar[i];
+                let sy = posStar[i+1];
+                let sz = posStar[i+2];
+                // Rotate the 3D star slowly around the Z-axis so it always faces the front!
+                let cx_s = sx * Math.cos(elapsedTime * 0.3) - sy * Math.sin(elapsedTime * 0.3);
+                let cy_s = sx * Math.sin(elapsedTime * 0.3) + sy * Math.cos(elapsedTime * 0.3);
+                sx = cx_s; sy = cy_s;
+
+                x += (sx - x) * ease4;
+                y += (sy - y) * ease4;
+                z += (sz - z) * ease4;
+
+                // DIAMOND
+                let dx = posDiamond[i];
+                let dy = posDiamond[i+1];
+                let dz = posDiamond[i+2];
+                
+                // Pure rigid spin along Y axis
+                let cx_d = dx * Math.cos(elapsedTime * 0.5) - dz * Math.sin(elapsedTime * 0.5);
+                let cz_d = dx * Math.sin(elapsedTime * 0.5) + dz * Math.cos(elapsedTime * 0.5);
+                dx = cx_d; dz = cz_d;
+
+                x += (dx - x) * ease5;
+                y += (dy - y) * ease5;
+                z += (dz - z) * ease5;
+
+                // HEART
+                let hx = posHeart[i] * beatScale;
+                let hy = posHeart[i+1] * beatScale;
+                let hz = posHeart[i+2] * beatScale;
+                
+                x += (hx - x) * ease6;
+                y += (hy - y) * ease6;
+                z += (hz - z) * ease6;
+
+                // Smooth Color Transitions
+                let r, g, b;
+                if (p3 >= 1 && p4 < 1) { 
+                    // Blend from Torus to Star gradient
+                    let grad = Math.max(0, Math.min(1, (sy + 4) / 10)); 
+                    let ur = colRoseBot.r + (colRoseTop.r - colRoseBot.r) * grad;
+                    let ug = colRoseBot.g + (colRoseTop.g - colRoseBot.g) * grad;
+                    let ub = colRoseBot.b + (colRoseTop.b - colRoseBot.b) * grad;
+                    r = colTorus.r + (ur - colTorus.r) * ease4;
+                    g = colTorus.g + (ug - colTorus.g) * ease4;
+                    b = colTorus.b + (ub - colTorus.b) * ease4;
+                } else if (p4 >= 1 && p6 === 0) {
+                    // Full Star/Diamond gradient
+                    let targetY = (p5 < 1) ? sy : dy;
+                    let grad = Math.max(0, Math.min(1, (targetY + 4) / 10)); 
+                    r = colRoseBot.r + (colRoseTop.r - colRoseBot.r) * grad;
+                    g = colRoseBot.g + (colRoseTop.g - colRoseBot.g) * grad;
+                    b = colRoseBot.b + (colRoseTop.b - colRoseBot.b) * grad;
+                } else if (p6 > 0) {
+                    // Blend from Diamond to Heart
+                    let grad = Math.max(0, Math.min(1, (dy + 4) / 10)); 
+                    let ur = colRoseBot.r + (colRoseTop.r - colRoseBot.r) * grad;
+                    let ug = colRoseBot.g + (colRoseTop.g - colRoseBot.g) * grad;
+                    let ub = colRoseBot.b + (colRoseTop.b - colRoseBot.b) * grad;
+                    r = ur + (colHeart.r - ur) * ease6;
+                    g = ug + (colHeart.g - ug) * ease6;
+                    b = ub + (colHeart.b - ub) * ease6;
+                } else {
+                    r = baseColor.r; g = baseColor.g; b = baseColor.b;
+                }
+
+                colAttr[i] = r; colAttr[i+1] = g; colAttr[i+2] = b;
+                positions[i] = x;
+                positions[i+1] = y;
+                positions[i+2] = z;
+            }
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.color.needsUpdate = true;
+
+            // Hyperspace Warp Animation
+            let warpRotZ = 0;
+            if (isWarping) {
+                warpProgress += 0.035; // speed of warp
+                if (warpProgress > Math.PI) {
+                    isWarping = false;
+                    warpZOffset = 0;
+                    camera.fov = 60;
+                    camera.updateProjectionMatrix();
+                } else {
+                    let warpBump = Math.sin(warpProgress);
+                    warpZOffset = warpBump * (isMobile ? 45 : 30); // Dive deep into the galaxy!
+                    warpRotZ = warpBump * Math.PI; // Barrel roll that safely returns to 0
+                    camera.fov = 60 + (warpBump * 60); // Stretch the stars like hyperspace
+                    camera.updateProjectionMatrix();
+                }
+            }
+
+            // Apply the temporary Z rotation (it will be 0 when not warping)
+            particleSystem.rotation.z = warpRotZ;
+
+            camera.position.z = (camBaseZ - (Math.pow(currentScroll, 1.2) * camEndZ)) - warpZOffset;
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth < 768;
+            camBaseZ = isMobile ? 65 : 45;
+            camEndZ = isMobile ? 35 : 20;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
